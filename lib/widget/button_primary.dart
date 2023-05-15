@@ -15,7 +15,7 @@ class ButtonPrimary extends StatelessWidget{
         onPressed: onTap, 
         child: Text(text), 
         style: ElevatedButton.styleFrom(
-          primary: greenColor, 
+          backgroundColor: greenColor, 
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)))),
     );
   }

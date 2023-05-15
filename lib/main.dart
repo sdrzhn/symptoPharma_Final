@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:symptopharm/main_page.dart';
 import 'package:symptopharm/pages/splash_screen.dart';
 import 'package:symptopharm/theme.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() => runApp(MyApp());
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget{
   @override
