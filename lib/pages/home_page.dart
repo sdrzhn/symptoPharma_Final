@@ -82,6 +82,14 @@ class _HomePagesState extends State<HomePages> {
     );
   }
 
+   Stream<QuerySnapshot> getPopularProductsStream() {
+    return FirebaseFirestore.instance
+        .collection('products')
+        .orderBy('rating', descending: true)
+        .limit(6)
+        .snapshots();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -209,79 +217,139 @@ class _HomePagesState extends State<HomePages> {
             ),
 
             //Popular Products
-            SizedBox(height: 20),
-            Text(
-              'Popular Products',
-              style: boldTextStyle.copyWith(
-                fontSize: 19,
-                color: greyBoldColor,
+SizedBox(height: 20),
+Text(
+  'Products by Rating',
+  style: boldTextStyle.copyWith(
+    fontSize: 19,
+    color: greyBoldColor,
+  ),
+),
+SizedBox(height: 8),
+StreamBuilder<QuerySnapshot>(
+  stream: getPopularProductsStream(),
+  builder: (context, snapshot) {
+    if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    }
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return CircularProgressIndicator();
+    }
+
+    final popularProducts = snapshot.data?.docs ?? [];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: popularProducts.length,
+      itemBuilder: (context, index) {
+        final productData = popularProducts[index].data()
+            as Map<String, dynamic>;
+
+        final productImageURL = productData['imgURL'] ?? '';
+        final productName = productData['productName'] ?? '';
+        final productGroup = productData['group'] ?? '';
+        final productRating = productData['rating'] ?? 0.0;
+
+        return GestureDetector(
+          onTap: () {
+            // Navigate to the product detail page for the selected product
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductDetailPage(
+                  productName: productName,
+                ),
               ),
-            ),
-            SizedBox(height: 8),
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('recommendedProducts')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
-
-                final recommendedProducts = snapshot.data?.docs ?? [];
-
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: recommendedProducts.length,
-                  itemBuilder: (context, index) {
-                    final productData = recommendedProducts[index].data()
-                        as Map<String, dynamic>;
-
-                    final productName = productData['productName'] ?? '';
-
-                    return GestureDetector(
-                      onTap: () {
-                        // Navigate to the product detail page for the selected product
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ProductDetailPage(
-                              productName: productName,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Card(
-                        child: Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          padding: EdgeInsets.all(8),
-                          child: Center(
-                            child: Text(
-                              productName,
-                              style: regulerTextStyle.copyWith(fontSize: 16),
-                            ),
-                          ),
-                        ),
+            );
+          },
+          child: Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.network(
+                  productImageURL,
+                  width: double.infinity,
+                  height: 90,
+                  fit: BoxFit.cover,
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        productName,
+                        style: TextStyle(fontSize: 16),
                       ),
-                    );
-                  },
-                );
-              },
+                      SizedBox(height: 4),
+                      Text(
+                        productGroup,
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: Colors.yellow,
+                            size: 16,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            productRating.toString(),
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+          ),
+        );
+      },
+    );
+  },
+),
+
           ],
         ),
       ),
     );
   }
+
+//   Stream<QuerySnapshot> getRecommendedProductsStream() {
+//     return FirebaseFirestore.instance
+//         .collection('recommendedProducts')
+//         .snapshots();
+//   }
+
+//   void updateRecommendedProducts(List<Map<String, dynamic>> products) {
+//     final batch = FirebaseFirestore.instance.batch();
+
+//     // Clear the existing recommendedProducts collection
+//     final collectionRef =
+//         FirebaseFirestore.instance.collection('recommendedProducts');
+//     collectionRef.get().then((snapshot) {
+//       for (final doc in snapshot.docs) {
+//         batch.delete(doc.reference);
+//       }
+//       batch.commit();
+//     });
+
+//     // Add the new recommended products to the collection
+//     for (final product in products) {
+//       batch.set(collectionRef.doc(), product);
+//     }
+//     batch.commit();
+//   }
 }
 
 //Searching products
@@ -302,13 +370,14 @@ class SearchResultsPage extends StatelessWidget {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 1,
         leading: IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePages()),
-              );
-            },
-            icon: Icon(Icons.arrow_back, color: Color(0xff6ebe81))),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HomePages()),
+            );
+          },
+          icon: Icon(Icons.arrow_back, color: Color(0xff6ebe81)),
+        ),
         centerTitle: true,
         title: Text(
           'Search Results for "$searchQuery"',
@@ -320,7 +389,8 @@ class SearchResultsPage extends StatelessWidget {
       body: GridView.builder(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, // Set the number of grid columns
-          crossAxisSpacing: 16, // Set the spacing between grid items horizontally
+          crossAxisSpacing:
+              16, // Set the spacing between grid items horizontally
           mainAxisSpacing: 16, // Set the spacing between grid items vertically
         ),
         itemCount: searchResults.length,
