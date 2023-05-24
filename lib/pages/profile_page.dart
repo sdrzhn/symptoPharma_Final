@@ -5,10 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:symptopharm/pages/edit_profile_page.dart';
 import 'package:symptopharm/pages/login_page.dart';
 import 'package:symptopharm/widget/general_logo_space.dart';
+import 'change_password_page.dart';
 
 class ProfilePages extends StatefulWidget {
-  const ProfilePages({super.key});
-
+  const ProfilePages({Key? key}) : super(key: key);
 
   @override
   State<ProfilePages> createState() => _ProfilePagesState();
@@ -41,7 +41,7 @@ class _ProfilePagesState extends State<ProfilePages> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.only(left: 20.0, right: 20.0),
           child: Column(
             children: [
               Container(
@@ -56,89 +56,113 @@ class _ProfilePagesState extends State<ProfilePages> {
               const SizedBox(
                 height: 10,
               ),
-              StreamBuilder<DocumentSnapshot>(
-                stream: _userCollection.doc(_user!.uid).snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  }
+              Expanded(
+                child: StreamBuilder<DocumentSnapshot>(
+                  stream: _userCollection.doc(_user?.uid).snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    }
 
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
 
-                  var userData = snapshot.data!.data() as Map<String, dynamic>;
-                  var name = userData['full_name'] as String?;
-                  var email = userData['email'] as String?;
-                  var address = userData['address'] as String?;
-                  var phone = userData['phone'] as String?;
+                    if (!snapshot.hasData || !snapshot.data!.exists) {
+                      return Text('User not found');
+                    }
 
-                  return Column(
-                    children: [
-                      itemProfile('Name', name ?? '', CupertinoIcons.person),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      itemProfile('Email', email ?? '', CupertinoIcons.mail),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      itemProfile(
-                          'Address', address ?? '', CupertinoIcons.home),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      itemProfile('Phone', phone ?? '', CupertinoIcons.phone),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.pushReplacement(
+                    var userData =
+                        snapshot.data!.data() as Map<String, dynamic>;
+                    var name = userData['full_name'] as String?;
+                    var email = userData['email'] as String?;
+                    var address = userData['address'] as String?;
+                    var phone = userData['phone'] as String?;
+
+                    return Column(
+                      children: [
+                        itemProfile('Name', name ?? '', CupertinoIcons.person),
+                        SizedBox(height: 10),
+                        itemProfile('Email', email ?? '', CupertinoIcons.mail),
+                        SizedBox(height: 10),
+                        itemProfile(
+                            'Address', address ?? '', CupertinoIcons.home),
+                        SizedBox(height: 10),
+                        itemProfile('Phone', phone ?? '', CupertinoIcons.phone),
+                        SizedBox(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => EditProfilePages(),
-                                    ));
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xff6ebe81),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      20), // Set the border radius
-                                ), // Set the background color of the button
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xff6ebe81),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      20,
+                                    ),
+                                  ),
+                                ),
+                                child: const Text('Edit Profile'),
                               ),
-                              child: const Text('Edit Profile'),
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                await FirebaseAuth.instance.signOut();
-                                Navigator.pushReplacement(
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  await FirebaseAuth.instance.signOut();
+                                  Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => LoginPages(),
-                                    ));
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xff6ebe81),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      20), // Set the border radius
-                                ), // Set the background color of the button
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xff6ebe81),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      20,
+                                    ),
+                                  ),
+                                ),
+                                child: const Text('Sign Out'),
                               ),
-                              child: const Text('Sign Out'),
                             ),
+                          ],
+                        ),
+                        Container(
+                          width: 200, // Set the desired width
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await FirebaseAuth.instance.signOut();
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChangePasswordPage(),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xff6ebe81),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: const Text('Change password'),
                           ),
-                        ],
-                      ),
-                    ],
-                  );
-                },
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ],
           ),

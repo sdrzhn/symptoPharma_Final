@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:symptopharm/pages/register_page.dart';
 import '../main_page.dart';
@@ -9,13 +8,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPages extends StatefulWidget {
-  const LoginPages({super.key});
+  const LoginPages({Key? key}) : super(key: key);
 
   @override
   State<LoginPages> createState() => _LoginPagesState();
 }
 
 class _LoginPagesState extends State<LoginPages> {
+  final GlobalKey<State> _dialogKey = GlobalKey<State>();
+
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
@@ -37,39 +38,47 @@ class _LoginPagesState extends State<LoginPages> {
       // Login successful
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text("Information"),
-          content: Text("Login successful"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainPages()),
-                  (route) => false,
-                );
-              },
-              child: Text("OK"),
-            ),
-          ],
-        ),
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            key: _dialogKey,
+            title: Text("Information"),
+            content: Text("Login successful"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => MainPages()),
+                    (route) => false,
+                  );
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
       );
     } catch (e) {
       // Login failed
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text("Information"),
-          content: Text("Login failed"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("OK"),
-            ),
-          ],
-        ),
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            key: _dialogKey,
+            title: Text("Information"),
+            content: Text("Login failed"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
       );
     }
   }
@@ -118,13 +127,19 @@ class _LoginPagesState extends State<LoginPages> {
                 SizedBox(
                   height: 8,
                 ),
-                Text("Login into your account",
-                    style: regulerTextStyle.copyWith(
-                        fontSize: 15, color: greyLightColor)),
+                Text(
+                  "Login into your account",
+                  style: regulerTextStyle.copyWith(
+                    fontSize: 15,
+                    color: greyLightColor,
+                  ),
+                ),
                 SizedBox(
                   height: 24,
                 ),
                 Container(
+                 
+
                   padding: EdgeInsets.only(left: 16),
                   height: 50,
                   decoration: BoxDecoration(
