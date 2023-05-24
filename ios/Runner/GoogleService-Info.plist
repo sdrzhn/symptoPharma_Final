@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>1072079987892-pr3s70vq0eb74slev4pnh3hh77fv8mvn.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.1072079987892-pr3s70vq0eb74slev4pnh3hh77fv8mvn</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>1072079987892-0dkc672an3nal9fsjhd9lq7ftpamr6u8.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAhaTxEgtuw7LaajchB7SrLmkGF69cDXaI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>1072079987892</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.symptopharm</string>
+	<key>PROJECT_ID</key>
+	<string>symptopharm</string>
+	<key>STORAGE_BUCKET</key>
+	<string>symptopharm.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:1072079987892:ios:b48681b613cec92e1563e1</string>
+</dict>
+</plist>

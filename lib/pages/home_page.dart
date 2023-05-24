@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:symptopharm/pages/category_page.dart';
@@ -32,17 +34,21 @@ class _HomePagesState extends State<HomePages> {
 
   late TextEditingController _searchController;
   List<Map<String, dynamic>> _products = [];
+  late StreamSubscription<QuerySnapshot> _popularProductsSubscription;
 
-  @override
+
+ @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     _fetchProducts();
+    _subscribeToPopularProducts();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _popularProductsSubscription.cancel(); // Cancel the subscription
     super.dispose();
   }
 
@@ -53,6 +59,18 @@ class _HomePagesState extends State<HomePages> {
     setState(() {
       _products = snapshot.docs.map((doc) => doc.data()).toList();
     });
+  }
+
+  void _subscribeToPopularProducts() {
+    final popularProductsStream = getPopularProductsStream();
+    _popularProductsSubscription = popularProductsStream.listen(
+      (snapshot) {
+        // Handle the snapshot data
+      },
+      onError: (error) {
+        // Handle the error
+      },
+    );
   }
 
   List<Map<String, dynamic>> _searchProducts(String query) {
