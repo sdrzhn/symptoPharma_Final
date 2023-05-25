@@ -35,9 +35,9 @@ class _HomePagesState extends State<HomePages> {
   late TextEditingController _searchController;
   List<Map<String, dynamic>> _products = [];
   late StreamSubscription<QuerySnapshot> _popularProductsSubscription;
+  bool _isMounted = false;
 
-
- @override
+  @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
@@ -48,7 +48,9 @@ class _HomePagesState extends State<HomePages> {
   @override
   void dispose() {
     _searchController.dispose();
-    _popularProductsSubscription.cancel(); // Cancel the subscription
+    _popularProductsSubscription
+        ?.cancel(); // Cancel the subscription if it exists
+    _isMounted = false;
     super.dispose();
   }
 
@@ -56,9 +58,11 @@ class _HomePagesState extends State<HomePages> {
     final snapshot =
         await FirebaseFirestore.instance.collection('products').get();
 
-    setState(() {
-      _products = snapshot.docs.map((doc) => doc.data()).toList();
-    });
+    if (_isMounted) {
+      setState(() {
+        _products = snapshot.docs.map((doc) => doc.data()).toList();
+      });
+    }
   }
 
   void _subscribeToPopularProducts() {
@@ -89,18 +93,21 @@ class _HomePagesState extends State<HomePages> {
 
   void _showSearchResults(String query) {
     final searchResults = _searchProducts(query);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SearchResultsPage(
-          searchQuery: query,
-          searchResults: searchResults,
+
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchResultsPage(
+            searchQuery: query,
+            searchResults: searchResults,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
-   Stream<QuerySnapshot> getPopularProductsStream() {
+  Stream<QuerySnapshot> getPopularProductsStream() {
     return FirebaseFirestore.instance
         .collection('products')
         .orderBy('rating', descending: true)
@@ -235,108 +242,112 @@ class _HomePagesState extends State<HomePages> {
             ),
 
             //Popular Products
-SizedBox(height: 20),
-Text(
-  'Products by Rating',
-  style: boldTextStyle.copyWith(
-    fontSize: 19,
-    color: greyBoldColor,
-  ),
-),
-SizedBox(height: 8),
-StreamBuilder<QuerySnapshot>(
-  stream: getPopularProductsStream(),
-  builder: (context, snapshot) {
-    if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
-    }
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
-    }
-
-    final popularProducts = snapshot.data?.docs ?? [];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: popularProducts.length,
-      itemBuilder: (context, index) {
-        final productData = popularProducts[index].data()
-            as Map<String, dynamic>;
-
-        final productImageURL = productData['imgURL'] ?? '';
-        final productName = productData['productName'] ?? '';
-        final productGroup = productData['group'] ?? '';
-        final productRating = productData['rating'] ?? 0.0;
-
-        return GestureDetector(
-          onTap: () {
-            // Navigate to the product detail page for the selected product
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailPage(
-                  productName: productName,
-                ),
+            SizedBox(height: 20),
+            Text(
+              'Products by Rating',
+              style: boldTextStyle.copyWith(
+                fontSize: 19,
+                color: greyBoldColor,
               ),
-            );
-          },
-          child: Card(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.network(
-                  productImageURL,
-                  width: double.infinity,
-                  height: 90,
-                  fit: BoxFit.cover,
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        productName,
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        productGroup,
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star,
-                            color: Colors.yellow,
-                            size: 16,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            productRating.toString(),
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
-          ),
-        );
-      },
-    );
-  },
-),
+            SizedBox(height: 8),
+            StreamBuilder<QuerySnapshot>(
+              stream: getPopularProductsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
 
+                final popularProducts = snapshot.data?.docs ?? [];
+
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                  ),
+                  itemCount: popularProducts.length,
+                  itemBuilder: (context, index) {
+                    final productData =
+                        popularProducts[index].data() as Map<String, dynamic>;
+
+                    final productImageURL = productData['imgURL'] ?? '';
+                    final productName = productData['productName'] ?? '';
+                    final productGroup = productData['group'] ?? '';
+                    final productRating = productData['rating'] ?? 0.0;
+                    final productPrice = productData['price'] ?? 0;
+
+                    return GestureDetector(
+                      onTap: () {
+                        // Navigate to the product detail page for the selected product
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductDetailPage(
+                                productName: productName,
+                                imgURL: productImageURL,
+                                group: productGroup,
+                                price: productPrice,
+                                rating: productRating),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.network(
+                              productImageURL,
+                              width: double.infinity,
+                              height: 90,
+                              fit: BoxFit.cover,
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    productName,
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    productGroup,
+                                    style: TextStyle(
+                                        fontSize: 14, color: Colors.grey),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.star,
+                                        color: Colors.yellow,
+                                        size: 16,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        productRating.toString(),
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -422,8 +433,11 @@ class SearchResultsPage extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => ProductDetailPage(
-                    productName: productData['productName'],
-                  ),
+                      productName: productData['productName'],
+                      imgURL: productData['imgURL'],
+                      group: productData['group'],
+                      price: productData['price'],
+                      rating: productData['rating']),
                 ),
               );
             },

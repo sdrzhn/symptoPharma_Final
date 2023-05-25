@@ -146,7 +146,7 @@ class _ProfilePagesState extends State<ProfilePages> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => ChangePasswordPage(),
+                                  builder: (context) => ChangePasswordPage(uid: '',),
                                 ),
                               );
                             },

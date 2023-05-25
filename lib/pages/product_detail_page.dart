@@ -3,38 +3,78 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:symptopharm/pages/category_page.dart';
 import 'package:symptopharm/pages/rating_bar.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productName;
+  final String imgURL;
+  final String group;
+  final String price;
+  final int rating;
 
-  ProductDetailPage({required this.productName});
+  ProductDetailPage({
+    required this.productName,
+    required this.imgURL,
+    required this.group,
+    required this.price,
+    required this.rating,
+  });
 
   @override
   _ProductDetailPageState createState() => _ProductDetailPageState();
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
+  late SharedPreferences _preferences;
   bool isFavorite = false;
   int rating = 0;
 
-  void toggleFavorite() {
-    setState(() {
-      isFavorite = !isFavorite;
-    });
+   @override
+  void initState() {
+    super.initState();
+    loadFavoriteStatus();
+  }
 
+  //  void toggleFavorite() {
+  //   if (isFavorite) {
+  //     removeFromFavorites();
+  //   } else {
+  //     addToFavorites();
+  //   }
+  // }
+
+Future<void> loadFavoriteStatus() async {
+    _preferences = await SharedPreferences.getInstance();
+    setState(() {
+      isFavorite = _preferences.getBool(widget.productName) ?? false;
+    });
+  }
+
+  Future<void> saveFavoriteStatus(bool status) async {
+    setState(() {
+      isFavorite = status;
+    });
+    _preferences.setBool(widget.productName, status);
+  }
+
+  void toggleFavorite() {
     if (isFavorite) {
-      addToFavorites();
-    } else {
       removeFromFavorites();
+    } else {
+      addToFavorites();
     }
   }
 
   void addToFavorites() {
     FirebaseFirestore.instance.collection('favoriteProducts').add({
       'productName': widget.productName,
+      'imgURL':widget.imgURL,
+      'group':widget.group,
+      'price':widget.price,
+      'rating':widget.rating,
     });
+    saveFavoriteStatus(true);
   }
 
   void removeFromFavorites() {
@@ -45,9 +85,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         .then((snapshot) {
       snapshot.docs.forEach((doc) {
         doc.reference.delete();
+
+        saveFavoriteStatus(false);
       });
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {

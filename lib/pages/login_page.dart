@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:symptopharm/pages/register_page.dart';
 import '../main_page.dart';
 import '../theme.dart';
@@ -27,61 +28,69 @@ class _LoginPagesState extends State<LoginPages> {
     });
   }
 
-  Future<void> submitLogin() async {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
+Future<void> submitLogin() async {
+  try {
+    UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    );
 
-      // Login successful
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            key: _dialogKey,
-            title: Text("Information"),
-            content: Text("Login successful"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => MainPages()),
-                    (route) => false,
-                  );
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      // Login failed
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            key: _dialogKey,
-            title: Text("Information"),
-            content: Text("Login failed"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    }
+    String uid = userCredential.user!.uid; // Get the user's UID
+
+    // Save UID and password
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('uid', uid);
+    prefs.setString('password', passwordController.text);
+
+    // Login successful
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          key: _dialogKey,
+          title: Text("Information"),
+          content: Text("Login successful"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => MainPages()),
+                  (route) => false,
+                );
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e) {
+    // Login failed
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          key: _dialogKey,
+          title: Text("Information"),
+          content: Text("Login failed"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
+}
+
+
 
   Future<void> createUserDocument(User user) async {
     final userRef =

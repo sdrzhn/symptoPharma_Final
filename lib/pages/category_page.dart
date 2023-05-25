@@ -85,6 +85,10 @@ class _CategoryPageState extends State<CategoryPage> {
                       MaterialPageRoute(
                         builder: (context) => ProductDetailPage(
                           productName: productName,
+                          imgURL: imgURL,
+                          group: productGroup,
+                          price: productPrice,
+                          rating: productRating
                         ),
                       ),
                     );

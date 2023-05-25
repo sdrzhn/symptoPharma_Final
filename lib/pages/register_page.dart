@@ -25,24 +25,28 @@ class _RegisterPagesState extends State<RegisterPages> {
     });
   }
 
-  registerSubmit() async {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
+ registerSubmit() async {
+  try {
+    UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    );
 
-      // Registration successful, store additional user data in Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'full_name': fullNameController.text,
-        'email': emailController.text,
-        'phone': phoneController.text,
-        'address': addressController.text,
-      });
+    String uid = userCredential.user!.uid; // Get the user's UID
+
+    // Registration successful, store additional user data in Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid) // Use the UID as the document ID
+        .set({
+      'uid': uid, // Save the UID in the document
+      'full_name': fullNameController.text,
+      'email': emailController.text,
+      'phone': phoneController.text,
+      'address': addressController.text,
+    });
+      
       // Registration successful, do something
       showDialog(
         context: context,
